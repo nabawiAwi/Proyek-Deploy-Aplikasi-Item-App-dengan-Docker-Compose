@@ -1,0 +1,25 @@
+version: "3.7"  # Menentukan versi docker compose
+
+services:
+  item-app:
+    image: wiee24/item-app:v1  # Menggunakan image dari docker hub
+    ports:
+      - 80:8080    # Mapping port 80 di host ke port 8080 di container
+    depends_on:
+      item-db:    # Memastikan item-db dimulai terlebih dahulu
+        condition: service_healthy
+    restart: always    # Memastikan container selalu restart jika terhenti
+
+  item-db:
+    image: mongo:3    # Menggunakan image MongoDB versi 3 dari docker hub
+    volumes:
+      - app-db:/data/db    # Menggunakan volume app-db untuk penyimpanan database
+    restart: always    # Memastikan container selalu restart jika terhenti
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.runCommand('ping').ok"]
+      interval: 30s      # Menambah waktu antara setiap pengecekan
+      retries: 5         # Mengurangi jumlah percakapan gagal
+      start_period: 60s  # Memperpanjang waktu tunggu awal sebelum pengecekan pertama
+
+volumes:
+   app-db:  # Volume untuk menyimpan database agar tidak hilang saat container restart
